@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>Driver ↔ Admin Live Location Test</title>
 
-  <!-- Leaflet (map) -->
+  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -12,74 +12,191 @@
   <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+
   <style>
-    body { font-family: Inter, system-ui, -apple-system, sans-serif; margin: 0; padding: 16px; background:#f7fafc; color:#111827; }
-    .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items:start; }
-    .card { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 6px 18px rgba(15,23,42,0.06); }
-    h2 { margin: 0 0 12px 0; font-size: 16px; }
-    button { padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; background: #2563eb; color: #fff; }
-    button.secondary { background:#6b7280; }
-    #map { height: 420px; border-radius: 8px; }
-    .log { max-height: 420px; overflow:auto; margin-top:8px; font-size:14px; background:#fbfdff; padding:8px; border-radius:6px; border:1px solid #eef2ff; }
-    label { display:block; margin-top:8px; font-size:13px; color:#374151; }
-    .controls { display:flex; gap:8px; align-items:center; margin-top:10px; flex-wrap:wrap; }
-    input[type="number"] { width:80px; padding:6px; border-radius:6px; border:1px solid #e5e7eb }
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #f4f6f9;
+      color: #111827;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    .wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .wrap {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+      border: 1px solid #eef1f5;
+    }
+
+    h2 {
+      margin: 0 0 14px 0;
+      font-size: 17px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: #2563eb;
+      color: #fff;
+      font-size: 14px;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    button.secondary {
+      background: #6b7280;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      margin-top: 4px;
+      font-size: 14px;
+    }
+
+    input[type="number"] {
+      width: 80px;
+    }
+
+    label {
+      display: block;
+      margin-top: 8px;
+      font-size: 13px;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .controls {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #map {
+      height: 420px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+    }
+
+    @media (max-width: 600px) {
+      #map {
+        height: 360px;
+      }
+    }
+
+    .log {
+      max-height: 420px;
+      overflow-y: auto;
+      margin-top: 8px;
+      font-size: 13px;
+      background: #fdfdff;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      line-height: 1.4;
+    }
+
+    .log div {
+      padding: 4px 0;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+
+    .log div:last-child {
+      border-bottom: none;
+    }
+
   </style>
 </head>
+
 <body>
+
   <h1>Live Location Tester — Driver & Admin</h1>
-  <p style="margin-top:4px;color:#6b7280">Open this file in two tabs (one as Driver, another as Admin) or use the same page — both panels are here.</p>
+  <p style="color:#6b7280">Use this page in 2 tabs: one as Driver and one as Admin.</p>
 
   <div class="wrap">
+
     <!-- DRIVER PANEL -->
     <div class="card">
-      <h2>Driver — send browser location to backend</h2>
+      <h2>Driver — Send Live Location</h2>
 
-      <div>
-        <label>Driver ID</label>
-        <input id="driverId" type="text" value="driver-1" style="padding:8px;border-radius:6px;border:1px solid #e5e7eb;width:100%" />
-      </div>
+      <label>Driver ID</label>
+      <input id="driverId" type="text" value="driver-1" />
 
       <div class="controls">
-        <button id="sendOnceBtn">Send current location (once)</button>
-        <button id="startAutoBtn" class="secondary">Start auto-send</button>
-        <button id="stopAutoBtn" class="secondary" disabled>Stop auto-send</button>
+        <button id="sendOnceBtn">Send Once</button>
+        <button id="startAutoBtn" class="secondary">Start Auto</button>
+        <button id="stopAutoBtn" class="secondary" disabled>Stop</button>
 
-        <label style="margin-left:12px">Interval (s)
+        <label style="margin-left: 6px;">
+          Interval (s)
           <input id="intervalSec" type="number" value="5" min="1" />
         </label>
       </div>
 
-      <div style="margin-top:12px">
-        <small style="color:#374151">Logs</small>
-        <div id="driverLog" class="log"></div>
-      </div>
+      <small style="display:block;margin-top:14px;color:#374151;font-weight:600;">Driver Logs</small>
+      <div id="driverLog" class="log"></div>
     </div>
 
     <!-- ADMIN PANEL -->
     <div class="card">
-      <h2>Admin — live map & logs (socket)</h2>
+      <h2>Admin — Live Map</h2>
+
       <div id="map"></div>
-      <div style="margin-top:8px">
-        <small style="color:#374151">Incoming events</small>
-        <div id="adminLog" class="log"></div>
-      </div>
+
+      <small style="display:block;margin-top:14px;color:#374151;font-weight:600;">Socket Events</small>
+      <div id="adminLog" class="log"></div>
     </div>
+
   </div>
+
+  <!-- ============================== -->
+  <!-- JAVASCRIPT FUNCTIONALITY       -->
+  <!-- ============================== -->
 
   <script>
     // ====== CONFIG ======
-    const BACKEND = "https://giro-api.demohub.tech"; // change if different
+    const BACKEND = "https://giro-api.demohub.tech";
     const API_LOCATION = BACKEND + "/api/location";
-    const SOCKET_URL = BACKEND; // Socket.IO endpoint
+    const SOCKET_URL = BACKEND;
 
-    // ====== DRIVER LOGIC ======
-    const driverLogEl = document.getElementById('driverLog');
-    const sendOnceBtn = document.getElementById('sendOnceBtn');
-    const startAutoBtn = document.getElementById('startAutoBtn');
-    const stopAutoBtn = document.getElementById('stopAutoBtn');
-    const intervalSecInput = document.getElementById('intervalSec');
-    const driverIdInput = document.getElementById('driverId');
+    // ===== DRIVER PANEL =====
+    const driverLogEl = document.getElementById("driverLog");
+    const sendOnceBtn = document.getElementById("sendOnceBtn");
+    const startAutoBtn = document.getElementById("startAutoBtn");
+    const stopAutoBtn = document.getElementById("stopAutoBtn");
+    const intervalSecInput = document.getElementById("intervalSec");
+    const driverIdInput = document.getElementById("driverId");
 
     let autoIntervalId = null;
 
@@ -88,124 +205,102 @@
       driverLogEl.innerHTML = `<div>[${time}] ${text}</div>` + driverLogEl.innerHTML;
     }
 
-    async function getCurrentPositionPromise() {
+    async function getCurrentPos() {
       return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) return reject(new Error('Geolocation not supported.'));
-        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, maximumAge: 0 });
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true
+        });
       });
     }
 
     async function sendLocationOnce() {
       try {
-        const pos = await getCurrentPositionPromise();
+        const pos = await getCurrentPos();
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         const driverId = driverIdInput.value || "driver-1";
 
-        logDriver(`Got coords: ${lat.toFixed(6)}, ${lng.toFixed(6)} → sending...`);
+        logDriver(`Captured ${lat.toFixed(5)}, ${lng.toFixed(5)} — sending...`);
 
         const res = await fetch(API_LOCATION, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ driverId, lat, lng })
         });
 
-        const body = await res.json().catch(()=>({}));
-        if (res.ok) {
-          logDriver(`Sent ✔  (${body?.msg || 'ok'})`);
-        } else {
-          logDriver(`Send failed: ${res.status} ${body?.msg || ''}`);
-        }
+        const body = await res.json();
+        logDriver(body.msg || "Sent.");
       } catch (err) {
-        logDriver(`Error getting/sending location: ${err.message}`);
+        logDriver("Error: " + err.message);
       }
     }
 
-    sendOnceBtn.addEventListener('click', sendLocationOnce);
+    sendOnceBtn.onclick = sendLocationOnce;
 
-    startAutoBtn.addEventListener('click', () => {
-      const sec = Math.max(1, Number(intervalSecInput.value) || 5);
+    startAutoBtn.onclick = () => {
+      const sec = Math.max(1, Number(intervalSecInput.value || 5));
       startAutoBtn.disabled = true;
       stopAutoBtn.disabled = false;
-      logDriver(`Auto-send started every ${sec}s`);
-      // send immediately then interval
+      logDriver(`Auto mode ON (${sec}s)`);
+
       sendLocationOnce();
       autoIntervalId = setInterval(sendLocationOnce, sec * 1000);
-    });
+    };
 
-    stopAutoBtn.addEventListener('click', () => {
-      if (autoIntervalId) {
-        clearInterval(autoIntervalId);
-        autoIntervalId = null;
-        logDriver('Auto-send stopped');
-      }
+    stopAutoBtn.onclick = () => {
+      clearInterval(autoIntervalId);
+      autoIntervalId = null;
       startAutoBtn.disabled = false;
       stopAutoBtn.disabled = true;
-    });
+      logDriver("Auto mode OFF");
+    };
 
-    // ====== ADMIN (SOCKET) + MAP ======
-    const adminLogEl = document.getElementById('adminLog');
+    // ===== ADMIN MAP =====
+    const adminLogEl = document.getElementById("adminLog");
 
     function logAdmin(text) {
       const time = new Date().toLocaleTimeString();
       adminLogEl.innerHTML = `<div>[${time}] ${text}</div>` + adminLogEl.innerHTML;
     }
 
-    // init Leaflet map
-    const map = L.map('map', { center: [20.5937, 78.9629], zoom: 5 }); // india center as default
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
+    // Map Init
+    const map = L.map("map", {
+      center: [20.5937, 78.9629],
+      zoom: 5
+    });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19
     }).addTo(map);
 
-    // markers state by driverId
+    // Store markers by driver
     const markers = {};
 
-    // connect socket.io
-    const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+    // Socket
+    const socket = io(SOCKET_URL);
 
-    socket.on('connect', () => {
-      logAdmin(`Socket connected: ${socket.id}`);
-    });
+    socket.on("connect", () => logAdmin("Socket connected: " + socket.id));
+    socket.on("disconnect", () => logAdmin("Socket disconnected"));
 
-    socket.on('disconnect', (reason) => {
-      logAdmin(`Socket disconnected: ${reason}`);
-    });
+    socket.on("driver-location", (data) => {
+      const { driverId, lat, lng, timestamp } = data;
+      const time = new Date(timestamp).toLocaleTimeString();
 
-    socket.on('driver-location', (data) => {
-      // expected: { driverId, lat, lng, timestamp }
-      const { driverId = 'unknown', lat, lng, timestamp } = data || {};
-      const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
-      logAdmin(`driver-location: ${driverId} → ${lat}, ${lng} @ ${timeStr}`);
+      logAdmin(`Driver ${driverId} → ${lat}, ${lng}`);
 
-      if (!lat || !lng) return;
+      const pos = [Number(lat), Number(lng)];
 
-      const latNum = Number(lat);
-      const lngNum = Number(lng);
-      if (!isFinite(latNum) || !isFinite(lngNum)) return;
-
-      // if marker exists, move it, else create
       if (markers[driverId]) {
-        markers[driverId].setLatLng([latNum, lngNum]);
-        markers[driverId].bindPopup(`${driverId}<br>${latNum.toFixed(6)}, ${lngNum.toFixed(6)}<br>${timeStr}`);
+        markers[driverId].setLatLng(pos);
       } else {
-        const m = L.marker([latNum, lngNum]).addTo(map);
-        m.bindPopup(`${driverId}<br>${latNum.toFixed(6)}, ${lngNum.toFixed(6)}<br>${timeStr}`);
-        markers[driverId] = m;
+        markers[driverId] = L.marker(pos).addTo(map);
       }
 
-      // optional: pan to driver (comment/uncomment)
-      // map.panTo([latNum, lngNum], { animate: true, duration: 0.4 });
+      markers[driverId].bindPopup(`<b>${driverId}</b><br>${lat}, ${lng}<br>${time}`);
     });
 
-    // show any socket error
-    socket.on('connect_error', (err) => {
-      logAdmin('connect_error: ' + (err?.message || err));
-    });
-
-    // quick UI hint: allow map resize after load
-    setTimeout(() => map.invalidateSize(), 500);
+    setTimeout(() => map.invalidateSize(), 600);
   </script>
+
 </body>
 </html>
-
