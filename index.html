@@ -180,7 +180,7 @@
 
         <div>
           <label>Interval (s)</label>
-          <input id="intervalSec" type="number" value="5" min="1" style="width:90px;">
+          <input id="intervalSec" type="number" value="10" min="1" style="width:90px;">
         </div>
       </div>
 
@@ -248,7 +248,7 @@
     sendOnceBtn.onclick = sendLocationOnce;
 
     startAutoBtn.onclick = () => {
-      const sec = Math.max(1, Number(intervalSecInput.value)||5);
+      const sec = Math.max(1, Number(intervalSecInput.value)||10);
       startAutoBtn.disabled = true; stopAutoBtn.disabled = false;
       logDriver(`Auto-send every ${sec}s`);
       sendLocationOnce();
@@ -302,3 +302,4 @@
   </script>
 </body>
 </html>
+
